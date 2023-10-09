@@ -25,6 +25,80 @@ if ! wget --spider https://download.nextcloud.com/server/releases/latest.zip; th
 fi
 
 #############################################################################################
+#################################### FUNCTIONS ##############################################
+#############################################################################################
+
+# Function to perform a complete Nextcloud backup
+apache() {
+    echo "########## Instalando e configurando Apache...##########"
+
+    # Instala o Apache
+    apt install apache2 apache2-utils -y
+
+    # Cria o VirtualHost para o Nextcloud
+    tee -a /etc/apache2/sites-available/nextcloud.conf <<EOF
+    <VirtualHost *:80>
+       ServerAdmin admin@nextcloud.example.com
+       DocumentRoot "/var/www/nextcloud"
+       ServerName nextcloud
+     <Directory "/var/www/nextcloud/">
+       Options MultiViews FollowSymlinks
+  
+       AllowOverride All
+       Order allow,deny
+       Allow from all
+     </Directory>
+       TransferLog /var/log/apache2/nextcloud_access.log
+       ErrorLog /var/log/apache2/nextcloud_error.log
+    </VirtualHost>
+EOF
+
+    # Reinicia e aplica as alterações no Apache e PHP
+    a2dismod php8.2
+    a2enmod proxy_fcgi setenvif
+    a2enconf php8.2-fpm
+    a2ensite nextcloud.conf
+    a2dissite 000-default.conf
+    a2enmod rewrite headers env dir mime setenvif ssl
+    systemctl restart apache2
+}
+
+# Function to perform a complete Nextcloud backup
+nginx() {
+    echo "########## Instalando e configurando Apache...##########"
+
+    # Instala o Apache
+    apt install apache2 apache2-utils -y
+
+    # Cria o VirtualHost para o Nextcloud
+    tee -a /etc/apache2/sites-available/nextcloud.conf <<EOF
+    <VirtualHost *:80>
+       ServerAdmin admin@nextcloud.example.com
+       DocumentRoot "/var/www/nextcloud"
+       ServerName nextcloud
+     <Directory "/var/www/nextcloud/">
+       Options MultiViews FollowSymlinks
+  
+       AllowOverride All
+       Order allow,deny
+       Allow from all
+     </Directory>
+       TransferLog /var/log/apache2/nextcloud_access.log
+       ErrorLog /var/log/apache2/nextcloud_error.log
+    </VirtualHost>
+EOF
+
+    # Reinicia e aplica as alterações no Apache e PHP
+    a2dismod php8.2
+    a2enmod proxy_fcgi setenvif
+    a2enconf php8.2-fpm
+    a2ensite nextcloud.conf
+    a2dissite 000-default.conf
+    a2enmod rewrite headers env dir mime setenvif ssl
+    systemctl restart apache2
+}
+
+#############################################################################################
 #################################### LOG ####################################################
 #############################################################################################
 
@@ -42,8 +116,24 @@ exec 2>&1
 apt update
 apt -y full-upgrade
 
-# Instala o Apache
-apt install apache2 apache2-utils -y
+# Instala e configura o WebServer
+
+# Solicitar ao usuário a escolha entre Apache e Nginx
+echo "Bem-vindo ao instalador do WebServer!"
+while true; do
+    read -p "Digite '1' para Apache ou '2' Nginx: " webserver
+    case $webserver in
+        1)
+            apache
+            ;;
+        2)
+            nginx
+            ;;
+        *)
+            echo "Escolha inválida. Por favor, digite '1' ou '2'."
+            ;;
+    esac
+done
 
 # Instala o MariaDB
 apt install mariadb-server mariadb-client -y
@@ -52,8 +142,8 @@ apt install mariadb-server mariadb-client -y
 # Solicitar ao usuário a escolha entre Debian e Ubuntu
 echo "Bem-vindo ao instalador PHP para Debian ou Ubuntu!"
 while true; do
-    read -p "Digite 'Debian' ou 'Ubuntu' para escolher a distribuição desejada: " distro
-    case $distro in
+    read -p "Digite 'Debian' ou 'Ubuntu' para escolher a distribuição desejada: " webserver
+    case $webserver in
         Debian)
             # Comandos para DEBIAN
             apt install apt-transport-https lsb-release ca-certificates wget -y
@@ -85,24 +175,6 @@ sed -i 's/memory_limit = .*/memory_limit = 512M/' /etc/php/8.2/fpm/php.ini
 sed -i 's/;date.timezone.*/date.timezone = America\/Sao_Paulo/' /etc/php/8.2/fpm/php.ini
 sed -i 's/upload_max_filesize = .*/upload_max_filesize = 10240M/' /etc/php/8.2/fpm/php.ini
 sed -i 's/post_max_size = .*/post_max_size = 10240M/' /etc/php/8.2/fpm/php.ini
-
-# Cria o VirtualHost para o Nextcloud
-tee -a /etc/apache2/sites-available/nextcloud.conf <<EOF
-<VirtualHost *:80>
-   ServerAdmin admin@nextcloud.example.com
-   DocumentRoot "/var/www/nextcloud"
-   ServerName nextcloud
- <Directory "/var/www/nextcloud/">
-   Options MultiViews FollowSymlinks
-  
-   AllowOverride All
-   Order allow,deny
-   Allow from all
- </Directory>
-   TransferLog /var/log/apache2/nextcloud_access.log
-   ErrorLog /var/log/apache2/nextcloud_error.log
-</VirtualHost>
-EOF
 
 # Reinicia e aplica as alterações no Apache e PHP
 a2dismod php8.2
