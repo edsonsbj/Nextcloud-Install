@@ -37,7 +37,7 @@ apache() {
 
     # Cria o VirtualHost para o Nextcloud
     cd /etc/apache2/sites-available
-    curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/apache/nextcloud.conf?token=GHSAT0AAAAAACHGPTNLA2TQ7F7XL4TFVUI2ZJEOPSQ -o nextcloud.conf
+    curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/apache/nextcloud.conf -o nextcloud.conf
 
     # Reinicia e aplica as alterações no Apache e PHP
     a2dismod php8.2
@@ -65,7 +65,7 @@ nginx() {
 
     # Cria o VirtualHost para o Nextcloud
     cd /etc/nginx/sites-available
-    curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/nginx/nextcloud.conf?token=GHSAT0AAAAAACHGPTNKNPBEI6IISAM3GYYUZJEO75A -o nextcloud    
+    curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/nginx/nextcloud.conf -o nextcloud    
     ln -s /etc/nginx/sites-available/nextcloud /etc/nginx/sites-enabled/
     rm /etc/nginx/sites-enabled/default
     systemctl reload nginx  
