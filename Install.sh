@@ -37,10 +37,10 @@ apache() {
 
     # Cria o VirtualHost para o Nextcloud
     tee -a /etc/apache2/sites-available/nextcloud.conf <<EOF
-    <VirtualHost *:80>
-       ServerAdmin admin@nextcloud.example.com
+    { echo "<VirtualHost *:80>"
+       ServerAdmin admin@nextcloud.example.com"
        DocumentRoot "/var/www/nextcloud"
-       ServerName nextcloud
+       ServerName nextcloud"
      <Directory "/var/www/nextcloud/">
        Options MultiViews FollowSymlinks
   
@@ -68,7 +68,7 @@ nginx() {
     echo "########## Instalando e configurando nginx...##########"
 
     # Instala o Apache
-    apt install apache2 apache2-utils -y
+    apt install nginx -y
 
     # Cria o VirtualHost para o Nextcloud
     tee -a /etc/apache2/sites-available/nextcloud.conf <<EOF
