@@ -68,7 +68,7 @@ nginx() {
     curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/nginx/nextcloud.conf?token=GHSAT0AAAAAACHGPTNKNPBEI6IISAM3GYYUZJEO75A -o nextcloud    
     ln -s /etc/nginx/sites-available/nextcloud /etc/nginx/sites-enabled/
     rm /etc/nginx/sites-enabled/default
-    systemctl reload apache2    
+    systemctl reload nginx  
 }
 
 #############################################################################################
