@@ -191,6 +191,15 @@ tee -a /var/www/nextcloud/config/custom.config.php <<EOF
 <?php
 \$CONFIG = array (
   'default_phone_region' => 'BR',
+  'memcache.distributed' => '\\OC\\Memcache\\Redis',
+  'memcache.local' => '\\OC\\Memcache\\Redis',
+  'memcache.locking' => '\\OC\\Memcache\\Redis',
+  'redis' => 
+  array (
+    'host' => 'localhost',
+    'port' => 6379,
+  ),
+  'htaccess.RewriteBase' => '/',
   'skeletondirectory' => '',
   'enabledPreviewProviders' =>
   array (
