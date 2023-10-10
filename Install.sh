@@ -6,7 +6,7 @@
 
 # Definir uma senha aleatória para o usuário do banco de dados e o usuário admin do Nextcloud
 DB_PASS=$(openssl rand -base64 12)
-ADMIN_PASS=$(openssl rand -base64 12)
+#ADMIN_PASS=$(openssl rand -base64 12)
 
 #############################################################################################
 #################################### TESTES #################################################
@@ -99,8 +99,26 @@ exec 2>&1
 #############################################################################################
 
 # Atualize o sistema.
-apt update
-apt -y full-upgrade
+apt update && apt -y full-upgrade
+
+# Instala o PHP 8.2 e extensões necessárias
+
+# Solicitar ao usuário a escolha entre Debian e Ubuntu
+echo "Bem-vindo ao instalador PHP para Debian ou Ubuntu!"
+while true; do
+    read -p "Digite '1' para Debian ou '2' Ubuntu para escolher a distribuição desejada: " distro
+    case $distro in
+        1)
+            php_debian
+            ;;
+        2)
+            php_ubuntu
+            ;;
+        *)
+            echo "Escolha inválida. Por favor, digite '1' ou '2'."
+            ;;
+    esac
+done
 
 # Instala e configura o WebServer
 
@@ -123,25 +141,6 @@ done
 
 # Instala o MariaDB
 apt install mariadb-server mariadb-client -y
-
-# Instala o PHP 8.2 e extensões necessárias
-
-# Solicitar ao usuário a escolha entre Debian e Ubuntu
-echo "Bem-vindo ao instalador PHP para Debian ou Ubuntu!"
-while true; do
-    read -p "Digite '1' para Debian ou '2' Ubuntu para escolher a distribuição desejada: " distro
-    case $distro in
-        1)
-            php_debian
-            ;;
-        2)
-            php_ubuntu
-            ;;
-        *)
-            echo "Escolha inválida. Por favor, digite '1' ou '2'."
-            ;;
-    esac
-done
 
 # Instala o Redis
 apt install redis-server php-redis -y
@@ -170,12 +169,56 @@ unzip latest.zip
 mv nextcloud /var/www/
 chown -R www-data:www-data /var/www/nextcloud
 chmod -R 755 /var/www/nextcloud
+mkdir -p /var/nextcloud_data 
+chown -R www-data:www-data /var/nextcloud_data
+chmod -R 770 /var/nextcloud_data
 
 # Executar o script de instalação do Nextcloud
-sudo -u www-data php /var/www/nextcloud/occ maintenance:install --database "mysql" --database-name "nextcloud" --database-user "nextcloud" --database-pass "$DB_PASS" --admin-user $USER --admin-pass "$ADMIN_PASS"
+# sudo -u www-data php /var/www/nextcloud/occ maintenance:install --database "mysql" --database-name "nextcloud" --database-user "nextcloud" --database-pass "$DB_PASS" --admin-user $USER --admin-pass "$ADMIN_PASS"
 
 # Exibir as senhas geradas no final do script
-echo "As senhas geradas são as seguintes:"
-echo "Senha do usuário admin do Nextcloud: '$ADMIN_PASS'"
+# echo "As senhas geradas são as seguintes:"
+# echo "Senha do usuário admin do Nextcloud: '$ADMIN_PASS'"
+
+tee -a /var/www/nextcloud/config/autoconfig.php <<EOF
+<?php
+$AUTOCONFIG = array(
+  "dbtype"        => "mysql",
+  "dbname"        => "nextcloud",
+  "dbuser"        => "nextcloud",
+  "dbpass"        => "$DB_PASS",
+  "dbhost"        => "localhost",
+  "directory"     => "/var/nextcloud_data",
+);
+EOF
+
+tee -a /var/www/nextcloud/config/custom.config.php <<EOF
+<?php
+\$CONFIG = array (
+  'default_phone_region' => 'BR',
+  'skeletondirectory' => '',
+  'enabledPreviewProviders' =>
+  array (
+    0 => 'OC\\Preview\\PNG',
+    1 => 'OC\\Preview\\JPEG',
+    2 => 'OC\\Preview\\GIF',
+    3 => 'OC\\Preview\\BMP',
+    4 => 'OC\\Preview\\XBitmap',
+    5 => 'OC\\Preview\\Movie',
+    6 => 'OC\\Preview\\PDF',
+    7 => 'OC\\Preview\\MP3',
+    8 => 'OC\\Preview\\TXT',
+    9 => 'OC\\Preview\\MarkDown',
+    10 => 'OC\\Preview\\Image',
+    11 => 'OC\\Preview\\HEIC',
+    12 => 'OC\\Preview\\TIFF',
+  ),
+  'trashbin_retention_obligation' => 'auto,30',
+  'versions_retention_obligation' => 'auto,30',
+);
+EOF
+
+# Add the task to cron
+(crontab -u www-data -l 2>/dev/null; echo "*/5 * * * * php /var/www/nextcloud/cron.php") | crontab -
 
 echo "A instalação do Nextcloud foi concluída com sucesso!"
