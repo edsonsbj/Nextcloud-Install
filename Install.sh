@@ -14,11 +14,11 @@ DB_PASS=$(openssl rand -base64 12)
 # Verificar se o script está sendo executado com privilégios de superusuário (root).
 if [ "$EUID" -ne 0 ]; then
   echo "Por favor, execute este script como superusuário (sudo)."
-  exit 1
+  exit
 fi
 
 # Verificar se o site está online
-if ! wget --quiet --spider https://download.nextcloud.com/server/releases/latest.zip; then
+if ! wget --spider https://download.nextcloud.com/server/releases/latest.zip; then
     echo "O site https://download.nextcloud.com não está online. Verifique a conexão com a Internet."
     exit 1
 fi
@@ -58,6 +58,8 @@ nginx() {
     curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/nginx/nextcloud.conf -o nextcloud    
     ln -s /etc/nginx/sites-available/nextcloud /etc/nginx/sites-enabled/
     rm /etc/nginx/sites-enabled/default
+    sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/8.2/fpm/pool.d/www.conf
+    sed -i 's/;cgi.fix_pathinfo=0/cgi.fix_pathinfo=0/g' /etc/php/8.2/fpm/php.ini
     systemctl reload nginx  
 }
 
