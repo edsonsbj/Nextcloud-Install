@@ -38,17 +38,8 @@ apache() {
     # Cria o VirtualHost para o Nextcloud
     cd /etc/apache2/sites-available
     curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/apache/nextcloud.conf -o nextcloud.conf
-
-    # Reinicia e aplica as alterações no Apache e PHP
-    a2dismod php8.2
-    a2enmod proxy_fcgi setenvif
-    a2enconf php8.2-fpm
-    a2ensite nextcloud.conf
-    a2dissite 000-default.conf
-    a2enmod rewrite headers env dir mime setenvif ssl
-    systemctl restart apache2
-    
-    # Ativa o site 
+  
+    # Efetua as configurações do Apache 
     a2ensite nextcloud.conf
     a2dissite 000-default.conf
     a2enmod proxy_fcgi setenvif
@@ -69,6 +60,28 @@ nginx() {
     ln -s /etc/nginx/sites-available/nextcloud /etc/nginx/sites-enabled/
     rm /etc/nginx/sites-enabled/default
     systemctl reload nginx  
+}
+
+# Função para instalar os modulos do PHP no Debian
+php_debian() {
+    echo "########## Instalando modulos PHP Debian...##########"
+
+    apt install apt-transport-https lsb-release ca-certificates wget -y
+    wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg 
+    sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+    apt update
+    apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
+}
+
+# Função para instalar os modulos do PHP no Ubuntu
+php_ubuntu() {
+    echo "########## Instalando modulos PHP Ubuntu...##########"
+
+    # Comandos para Ubuntu
+    apt install software-properties-common -y
+    add-apt-repository ppa:ondrej/php -y
+    apt update
+    apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
 }
 
 #############################################################################################
@@ -112,36 +125,28 @@ done
 apt install mariadb-server mariadb-client -y
 
 # Instala o PHP 8.2 e extensões necessárias
+
 # Solicitar ao usuário a escolha entre Debian e Ubuntu
 echo "Bem-vindo ao instalador PHP para Debian ou Ubuntu!"
 while true; do
-    read -p "Digite 'Debian' ou 'Ubuntu' para escolher a distribuição desejada: " webserver
-    case $webserver in
-        Debian)
-            # Comandos para DEBIAN
-            apt install apt-transport-https lsb-release ca-certificates wget -y
-            wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg 
-            sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
-            apt update
-            apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
-            break
+    read -p "Digite '1' para Debian ou '2' Ubuntu para escolher a distribuição desejada: " distro
+    case $distro in
+        1)
+            php_debian
             ;;
-        Ubuntu)
-            # Comandos para Ubuntu
-            apt install software-properties-common -y
-            add-apt-repository ppa:ondrej/php -y
-            apt update
-            apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
-            break
+        2)
+            php_ubuntu
             ;;
         *)
-            echo "Escolha inválida. Por favor, digite 'Debian' ou 'Ubuntu'."
+            echo "Escolha inválida. Por favor, digite '1' ou '2'."
             ;;
     esac
 done
 
 # Instala o Redis
 apt install redis-server php-redis -y
+phpenmod redis
+systemctl restart $webserver
 
 # Configura o PHP-FPM
 sed -i 's/memory_limit = .*/memory_limit = 512M/' /etc/php/8.2/fpm/php.ini
@@ -149,15 +154,8 @@ sed -i 's/;date.timezone.*/date.timezone = America\/Sao_Paulo/' /etc/php/8.2/fpm
 sed -i 's/upload_max_filesize = .*/upload_max_filesize = 10240M/' /etc/php/8.2/fpm/php.ini
 sed -i 's/post_max_size = .*/post_max_size = 10240M/' /etc/php/8.2/fpm/php.ini
 
-# Reinicia e aplica as alterações no Apache e PHP
-a2dismod php8.2
-a2enmod proxy_fcgi setenvif
-a2enconf php8.2-fpm
-phpenmod redis
-a2ensite nextcloud.conf
-a2dissite 000-default.conf
-a2enmod rewrite headers env dir mime setenvif ssl
-systemctl restart apache2
+# Reinicia e aplica as alterações no WebServer e PHP
+systemctl restart $webserver
 systemctl restart php8.2-fpm
 
 # Cria o Banco de Dados
