@@ -176,13 +176,13 @@ chmod -R 770 /var/nextcloud_data
 # Configure Nextcloud
 tee -a /var/www/nextcloud/config/autoconfig.php <<EOF
 <?php
-$AUTOCONFIG = array(
-  "dbtype"        => "mysql",
-  "dbname"        => "nextcloud",
-  "dbuser"        => "nextcloud",
-  "dbpass"        => "$DB_PASS",
-  "dbhost"        => "localhost",
-  "directory"     => "/var/nextcloud_data",
+\$AUTOCONFIG = array(
+  'dbtype'        => 'mysql',
+  'dbname'        => 'nextcloud',
+  'dbuser'        => 'nextcloud',
+  'dbpass'        => '$DB_PASS',
+  'dbhost'        => 'localhost',
+  'directory'     => '/var/nextcloud_data',
 );
 EOF
 
@@ -226,7 +226,7 @@ EOF
 #############################################################################################
 
 # Add a task to the cron
-(crontab -u www-data -l 2>/dev/null; echo "*/5 * * * * php /var/www/nextcloud/cron.php") | crontab -
+(crontab -l 2>/dev/null; echo "*/5 * * * * sudo -u www-data php /var/www/nextcloud/cron.php") | crontab -
 
 # Install ffmpeg to enable video thumbnails
 apt install ffmpeg -y
