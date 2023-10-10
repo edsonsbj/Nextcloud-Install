@@ -1,25 +1,25 @@
 #!/bin/bash
 
 #############################################################################################
-#################################### VARIAVEIS ##############################################
+#################################### VARIABLES ##############################################
 #############################################################################################
 
-# Definir uma senha aleatória para o usuário do banco de dados e o usuário admin do Nextcloud
+# Set a random password for the database user and the Nextcloud admin user
 DB_PASS=$(openssl rand -base64 12)
 
 #############################################################################################
-#################################### TESTES #################################################
+#################################### TESTS #################################################
 #############################################################################################
 
-# Verificar se o script está sendo executado com privilégios de superusuário (root).
+# Check if the script is being executed with superuser privileges (root).
 if [ "$EUID" -ne 0 ]; then
-  echo "Por favor, execute este script como superusuário (sudo)."
-  exit
+  echo "Please run this script as a superuser (sudo)."
+  exit 1
 fi
 
-# Verificar se o site está online
+# Check if the website is online
 if ! wget --spider https://download.nextcloud.com/server/releases/latest.zip; then
-    echo "O site https://download.nextcloud.com não está online. Verifique a conexão com a Internet."
+    echo "The website https://download.nextcloud.com is not online. Please check your internet connection."
     exit 1
 fi
 
@@ -27,18 +27,18 @@ fi
 #################################### FUNCTIONS ##############################################
 #############################################################################################
 
-# Função para instalar e configurar o apache
+# Function to install and configure Apache
 apache() {
-    echo "########## Instalando e configurando Apache...##########"
+    echo "########## Installing and configuring Apache...##########"
 
-    # Instala o Apache
+    # Install Apache
     apt install apache2 apache2-utils -y
 
-    # Cria o VirtualHost para o Nextcloud
+    # Create the VirtualHost for Nextcloud
     cd /etc/apache2/sites-available
     curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/apache/nextcloud.conf -o nextcloud.conf
-  
-    # Efetua as configurações do Apache 
+
+    # Perform Apache configurations
     a2ensite nextcloud.conf
     a2dissite 000-default.conf
     a2enmod proxy_fcgi setenvif
@@ -46,26 +46,26 @@ apache() {
     systemctl restart apache2
 }
 
-# Função para instalar e configurar o nginx
+# Function to install and configure Nginx
 nginx() {
-    echo "########## Instalando e configurando nginx...##########"
+    echo "########## Installing and configuring Nginx...##########"
 
-    # Instala o nginx
+    # Install Nginx
     apt install nginx -y
 
-    # Cria o VirtualHost para o Nextcloud
+    # Create the VirtualHost for Nextcloud
     cd /etc/nginx/sites-available
-    curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/nginx/nextcloud.conf -o nextcloud    
+    curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/nginx/nextcloud.conf -o nextcloud
     ln -s /etc/nginx/sites-available/nextcloud /etc/nginx/sites-enabled/
     rm /etc/nginx/sites-enabled/default
     sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/8.2/fpm/pool.d/www.conf
     sed -i 's/;cgi.fix_pathinfo=0/cgi.fix_pathinfo=0/g' /etc/php/8.2/fpm/php.ini
-    systemctl reload nginx  
+    systemctl reload nginx
 }
 
-# Função para instalar os módulos do PHP no Debian
+# Function to install PHP modules on Debian
 php_debian() {
-    echo "########## Instalando módulos PHP Debian...##########"
+    echo "########## Installing PHP modules on Debian...##########"
 
     apt install apt-transport-https lsb-release ca-certificates wget -y
     wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg 
@@ -74,11 +74,10 @@ php_debian() {
     apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
 }
 
-# Função para instalar os módulos do PHP no Ubuntu
+# Function to install PHP modules on Ubuntu
 php_ubuntu() {
-    echo "########## Instalando módulos PHP Ubuntu...##########"
+    echo "########## Installing PHP modules on Ubuntu...##########"
 
-    # Comandos para Ubuntu
     apt install software-properties-common -y
     add-apt-repository ppa:ondrej/php -y
     apt update
@@ -89,25 +88,25 @@ php_ubuntu() {
 #################################### LOG ####################################################
 #############################################################################################
 
-# Criar um arquivo de log para gravar as saídas dos comandos
+# Create a log file to record command outputs
 LOG_FILE=/var/log/nextcloud_install.log
 touch "$LOG_FILE"
 exec > >(tee -a "$LOG_FILE")
 exec 2>&1
 
 #############################################################################################
-#################################### INICIANDO INSTALAÇÃO ###################################
+#################################### STARTING INSTALLATION #################################
 #############################################################################################
 
-# Atualize o sistema.
+# Update the system.
 apt update && apt -y full-upgrade
 
-# Instala o PHP 8.2 e extensões necessárias
+# Install PHP 8.2 and necessary extensions
 
-# Solicitar ao usuário a escolha entre Debian e Ubuntu
-echo "Bem-vindo ao instalador PHP para Debian ou Ubuntu!"
+# Prompt the user to choose between Debian and Ubuntu
+echo "Welcome to the PHP installer for Debian or Ubuntu!"
 while true; do
-    read -p "Digite '1' para Debian ou '2' Ubuntu para escolher a distribuição desejada: " distro
+    read -p "Type '1' for Debian or '2' for Ubuntu to choose the desired distribution: " distro
     case $distro in
         1)
             php_debian
@@ -116,17 +115,17 @@ while true; do
             php_ubuntu
             ;;
         *)
-            echo "Escolha inválida. Por favor, digite '1' ou '2'."
+            echo "Invalid choice. Please type '1' or '2'."
             ;;
     esac
 done
 
-# Instala e configura o WebServer
+# Install and configure the WebServer
 
-# Solicitar ao usuário a escolha entre Apache e Nginx
-echo "Bem-vindo ao instalador do WebServer!"
+# Prompt the user to choose between Apache and Nginx
+echo "Welcome to the WebServer installer!"
 while true; do
-    read -p "Digite '1' para Apache ou '2' Nginx: " webserver
+    read -p "Type '1' for Apache or '2' for Nginx: " webserver
     case $webserver in
         1)
             apache
@@ -135,36 +134,36 @@ while true; do
             nginx
             ;;
         *)
-            echo "Escolha inválida. Por favor, digite '1' ou '2'."
+            echo "Invalid choice. Please type '1' or '2'."
             ;;
     esac
 done
 
-# Instala o MariaDB
+# Install MariaDB
 apt install mariadb-server mariadb-client -y
 
-# Instala o Redis
+# Install Redis
 apt install redis-server php-redis -y
 phpenmod redis
 systemctl restart $webserver
 
-# Configura o PHP-FPM
+# Configure PHP-FPM
 sed -i 's/memory_limit = .*/memory_limit = 512M/' /etc/php/8.2/fpm/php.ini
 sed -i 's/;date.timezone.*/date.timezone = America\/Sao_Paulo/' /etc/php/8.2/fpm/php.ini
 sed -i 's/upload_max_filesize = .*/upload_max_filesize = 10240M/' /etc/php/8.2/fpm/php.ini
 sed -i 's/post_max_size = .*/post_max_size = 10240M/' /etc/php/8.2/fpm/php.ini
 
-# Reinicia e aplica as alterações no WebServer e PHP
+# Restart and apply changes to WebServer and PHP
 systemctl restart $webserver
 systemctl restart php8.2-fpm
 
-# Cria o Banco de Dados
+# Create the Database
 mysql -e "CREATE DATABASE nextcloud;"
 mysql -e "CREATE USER 'nextcloud'@'localhost' IDENTIFIED BY '$DB_PASS';"
 mysql -e "GRANT ALL PRIVILEGES ON nextcloud.* TO 'nextcloud'@'localhost';"
 mysql -e "FLUSH PRIVILEGES;"
 
-# Baixa e instala o Nextcloud
+# Download and install Nextcloud
 wget https://download.nextcloud.com/server/releases/latest.zip
 unzip latest.zip
 mv nextcloud /var/www/
@@ -174,7 +173,7 @@ mkdir -p /var/nextcloud_data
 chown -R www-data:www-data /var/nextcloud_data
 chmod -R 770 /var/nextcloud_data
 
-# Configura o Nextcloud
+# Configure Nextcloud
 tee -a /var/www/nextcloud/config/autoconfig.php <<EOF
 <?php
 $AUTOCONFIG = array(
@@ -222,7 +221,14 @@ tee -a /var/www/nextcloud/config/custom.config.php <<EOF
 );
 EOF
 
-# Adicionar tarefa ao cron
+#############################################################################################
+############################### FINISHING THE INSTALLATION ##################################
+#############################################################################################
+
+# Add a task to the cron
 (crontab -u www-data -l 2>/dev/null; echo "*/5 * * * * php /var/www/nextcloud/cron.php") | crontab -
 
-echo "A instalação do Nextcloud foi concluída com sucesso!"
+# Install ffmpeg to enable video thumbnails
+apt install ffmpeg -y
+
+echo "Nextcloud installation has been completed successfully!"
