@@ -6,7 +6,6 @@
 
 # Definir uma senha aleatória para o usuário do banco de dados e o usuário admin do Nextcloud
 DB_PASS=$(openssl rand -base64 12)
-#ADMIN_PASS=$(openssl rand -base64 12)
 
 #############################################################################################
 #################################### TESTES #################################################
@@ -15,11 +14,11 @@ DB_PASS=$(openssl rand -base64 12)
 # Verificar se o script está sendo executado com privilégios de superusuário (root).
 if [ "$EUID" -ne 0 ]; then
   echo "Por favor, execute este script como superusuário (sudo)."
-  exit
+  exit 1
 fi
 
 # Verificar se o site está online
-if ! wget --spider https://download.nextcloud.com/server/releases/latest.zip; then
+if ! wget --quiet --spider https://download.nextcloud.com/server/releases/latest.zip; then
     echo "O site https://download.nextcloud.com não está online. Verifique a conexão com a Internet."
     exit 1
 fi
@@ -62,9 +61,9 @@ nginx() {
     systemctl reload nginx  
 }
 
-# Função para instalar os modulos do PHP no Debian
+# Função para instalar os módulos do PHP no Debian
 php_debian() {
-    echo "########## Instalando modulos PHP Debian...##########"
+    echo "########## Instalando módulos PHP Debian...##########"
 
     apt install apt-transport-https lsb-release ca-certificates wget -y
     wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg 
@@ -73,9 +72,9 @@ php_debian() {
     apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
 }
 
-# Função para instalar os modulos do PHP no Ubuntu
+# Função para instalar os módulos do PHP no Ubuntu
 php_ubuntu() {
-    echo "########## Instalando modulos PHP Ubuntu...##########"
+    echo "########## Instalando módulos PHP Ubuntu...##########"
 
     # Comandos para Ubuntu
     apt install software-properties-common -y
@@ -173,13 +172,7 @@ mkdir -p /var/nextcloud_data
 chown -R www-data:www-data /var/nextcloud_data
 chmod -R 770 /var/nextcloud_data
 
-# Executar o script de instalação do Nextcloud
-# sudo -u www-data php /var/www/nextcloud/occ maintenance:install --database "mysql" --database-name "nextcloud" --database-user "nextcloud" --database-pass "$DB_PASS" --admin-user $USER --admin-pass "$ADMIN_PASS"
-
-# Exibir as senhas geradas no final do script
-# echo "As senhas geradas são as seguintes:"
-# echo "Senha do usuário admin do Nextcloud: '$ADMIN_PASS'"
-
+# Configura o Nextcloud
 tee -a /var/www/nextcloud/config/autoconfig.php <<EOF
 <?php
 $AUTOCONFIG = array(
@@ -218,7 +211,7 @@ tee -a /var/www/nextcloud/config/custom.config.php <<EOF
 );
 EOF
 
-# Add the task to cron
+# Adicionar tarefa ao cron
 (crontab -u www-data -l 2>/dev/null; echo "*/5 * * * * php /var/www/nextcloud/cron.php") | crontab -
 
 echo "A instalação do Nextcloud foi concluída com sucesso!"
