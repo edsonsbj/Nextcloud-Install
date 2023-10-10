@@ -14,7 +14,7 @@ DB_PASS=$(openssl rand -base64 12)
 # Check if the script is being executed with superuser privileges (root).
 if [ "$EUID" -ne 0 ]; then
   echo "Please run this script as a superuser (sudo)."
-  exit 1
+  exit
 fi
 
 # Check if the website is online
