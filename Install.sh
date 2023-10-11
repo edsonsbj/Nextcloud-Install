@@ -24,67 +24,6 @@ if ! wget --spider https://download.nextcloud.com/server/releases/latest.zip; th
 fi
 
 #############################################################################################
-#################################### FUNCTIONS ##############################################
-#############################################################################################
-
-# Function to install and configure Apache
-apache() {
-    echo "########## Installing and configuring Apache...##########"
-
-    # Install Apache
-    apt install apache2 apache2-utils -y
-
-    # Create the VirtualHost for Nextcloud
-    cd /etc/apache2/sites-available
-    curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/apache/nextcloud.conf -o nextcloud.conf
-
-    # Perform Apache configurations
-    a2ensite nextcloud.conf
-    a2dissite 000-default.conf
-    a2enmod proxy_fcgi setenvif
-    a2enmod rewrite headers env dir mime setenvif ssl
-    systemctl restart apache2
-}
-
-# Function to install and configure Nginx
-nginx() {
-    echo "########## Installing and configuring Nginx...##########"
-
-    # Install Nginx
-    apt install nginx -y
-
-    # Create the VirtualHost for Nextcloud
-    cd /etc/nginx/sites-available
-    curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/nginx/nextcloud.conf -o nextcloud
-    ln -s /etc/nginx/sites-available/nextcloud /etc/nginx/sites-enabled/
-    rm /etc/nginx/sites-enabled/default
-    sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/8.2/fpm/pool.d/www.conf
-    sed -i 's/;cgi.fix_pathinfo=0/cgi.fix_pathinfo=0/g' /etc/php/8.2/fpm/php.ini
-    systemctl reload nginx
-}
-
-# Function to install PHP modules on Debian
-php_debian() {
-    echo "########## Installing PHP modules on Debian...##########"
-
-    apt install apt-transport-https lsb-release ca-certificates wget -y
-    wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg 
-    sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
-    apt update
-    apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
-}
-
-# Function to install PHP modules on Ubuntu
-php_ubuntu() {
-    echo "########## Installing PHP modules on Ubuntu...##########"
-
-    apt install software-properties-common -y
-    add-apt-repository ppa:ondrej/php -y
-    apt update
-    apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
-}
-
-#############################################################################################
 #################################### LOG ####################################################
 #############################################################################################
 
@@ -109,10 +48,25 @@ while true; do
     read -p "Type '1' for Debian or '2' for Ubuntu to choose the desired distribution: " distro
     case $distro in
         1)
-            php_debian
+            # Debian
+            echo "########## Installing PHP modules on Debian...##########"
+
+            apt install apt-transport-https lsb-release ca-certificates wget -y
+            wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg 
+            sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+            apt update
+            apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
+            break
             ;;
         2)
-            php_ubuntu
+            # Ubuntu
+            echo "########## Installing PHP modules on Ubuntu...##########"
+
+            apt install software-properties-common -y
+            add-apt-repository ppa:ondrej/php -y
+            apt update
+            apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
+            break
             ;;
         *)
             echo "Invalid choice. Please type '1' or '2'."
@@ -128,10 +82,40 @@ while true; do
     read -p "Type '1' for Apache or '2' for Nginx: " webserver
     case $webserver in
         1)
-            apache
+            # Apache
+            echo "########## Installing and configuring Apache...##########"
+
+            # Install Apache
+            apt install apache2 apache2-utils -y
+
+            # Create the VirtualHost for Nextcloud
+            cd /etc/apache2/sites-available
+            curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/apache/nextcloud.conf -o nextcloud.conf
+
+            # Perform Apache configurations
+            a2ensite nextcloud.conf
+            a2dissite 000-default.conf
+            a2enmod proxy_fcgi setenvif
+            a2enmod rewrite headers env dir mime setenvif ssl
+            systemctl restart apache2
+            break
             ;;
         2)
-            nginx
+            # Nginx
+            echo "########## Installing and configuring Nginx...##########"
+
+            # Install Nginx
+            apt install nginx -y
+
+            # Create the VirtualHost for Nextcloud
+            cd /etc/nginx/sites-available
+            curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/nginx/nextcloud.conf -o nextcloud
+            ln -s /etc/nginx/sites-available/nextcloud /etc/nginx/sites-enabled/
+            rm /etc/nginx/sites-enabled/default
+            sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/8.2/fpm/pool.d/www.conf
+            sed -i 's/;cgi.fix_pathinfo=0/cgi.fix_pathinfo=0/g' /etc/php/8.2/fpm/php.ini
+            systemctl reload nginx
+            break
             ;;
         *)
             echo "Invalid choice. Please type '1' or '2'."
@@ -164,9 +148,9 @@ mysql -e "GRANT ALL PRIVILEGES ON nextcloud.* TO 'nextcloud'@'localhost';"
 mysql -e "FLUSH PRIVILEGES;"
 
 # Download and install Nextcloud
+cd /var/www/
 wget https://download.nextcloud.com/server/releases/latest.zip
 unzip latest.zip
-mv nextcloud /var/www/
 chown -R www-data:www-data /var/www/nextcloud
 chmod -R 755 /var/www/nextcloud
 mkdir -p /var/nextcloud_data 
