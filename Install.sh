@@ -38,7 +38,7 @@ exec 2>&1
 #############################################################################################
 
 # Update the system.
-apt update && apt -y full-upgrade
+apt-get update && apt-get -y full-upgrade
 
 # Install PHP 8.2 and necessary extensions
 
@@ -51,21 +51,21 @@ while true; do
             # Debian
             echo "########## Installing PHP modules on Debian...##########"
 
-            apt install apt-transport-https lsb-release ca-certificates wget -y
+            apt-get install apt-transport-https lsb-release ca-certificates wget -y
             wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg 
             sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
-            apt update
-            apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
+            apt-get update
+            apt-get install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
             break
             ;;
         2)
             # Ubuntu
             echo "########## Installing PHP modules on Ubuntu...##########"
 
-            apt install software-properties-common -y
+            apt-get install software-properties-common -y
             add-apt-repository ppa:ondrej/php -y
-            apt update
-            apt install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
+            apt-get update
+            apt-get install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
             break
             ;;
         *)
@@ -86,7 +86,7 @@ while true; do
             echo "########## Installing and configuring Apache...##########"
 
             # Install Apache
-            apt install apache2 apache2-utils -y
+            apt-get install apache2 apache2-utils -y
 
             # Create the VirtualHost for Nextcloud
             cd /etc/apache2/sites-available
@@ -105,7 +105,7 @@ while true; do
             echo "########## Installing and configuring Nginx...##########"
 
             # Install Nginx
-            apt install nginx -y
+            apt-get install nginx -y
 
             # Create the VirtualHost for Nextcloud
             cd /etc/nginx/sites-available
@@ -124,10 +124,10 @@ while true; do
 done
 
 # Install MariaDB
-apt install mariadb-server mariadb-client -y
+apt-get install mariadb-server mariadb-client -y
 
 # Install Redis
-apt install redis-server php-redis -y
+apt-get install redis-server php-redis -y
 phpenmod redis
 systemctl restart $webserver
 
@@ -213,6 +213,6 @@ EOF
 (crontab -l 2>/dev/null; echo "*/5 * * * * sudo -u www-data php /var/www/nextcloud/cron.php") | crontab -
 
 # Install ffmpeg to enable video thumbnails
-apt install ffmpeg -y
+apt-get install ffmpeg -y
 
 echo "Nextcloud installation has been completed successfully!"
