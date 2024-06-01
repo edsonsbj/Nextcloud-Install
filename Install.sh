@@ -55,7 +55,7 @@ while true; do
             wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg 
             sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
             apt-get update
-            apt-get install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
+            apt-get install unzip imagemagick php8.3 php8.3-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
             break
             ;;
         2)
@@ -65,7 +65,7 @@ while true; do
             apt-get install software-properties-common -y
             add-apt-repository ppa:ondrej/php -y
             apt-get update
-            apt-get install unzip imagemagick php8.2 php8.2-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
+            apt-get install unzip imagemagick php8.3 php8.3-{fpm,cli,curl,gd,mbstring,xml,zip,bz2,intl,bcmath,gmp,imagick,mysql} -y
             break
             ;;
         *)
@@ -112,8 +112,8 @@ while true; do
             curl -sSfL https://raw.githubusercontent.com/edsonsbj/Nextcloud/master/etc/nginx/nextcloud.conf -o nextcloud
             ln -s /etc/nginx/sites-available/nextcloud /etc/nginx/sites-enabled/
             rm /etc/nginx/sites-enabled/default
-            sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/8.2/fpm/pool.d/www.conf
-            sed -i 's/;cgi.fix_pathinfo=0/cgi.fix_pathinfo=0/g' /etc/php/8.2/fpm/php.ini
+            sed -i 's/;clear_env = no/clear_env = no/g' /etc/php/8.3/fpm/pool.d/www.conf
+            sed -i 's/;cgi.fix_pathinfo=0/cgi.fix_pathinfo=0/g' /etc/php/8.3/fpm/php.ini
             systemctl reload nginx
             break
             ;;
@@ -132,14 +132,14 @@ phpenmod redis
 systemctl restart $webserver
 
 # Configure PHP-FPM
-sed -i 's/memory_limit = .*/memory_limit = 512M/' /etc/php/8.2/fpm/php.ini
-sed -i 's/;date.timezone.*/date.timezone = America\/Sao_Paulo/' /etc/php/8.2/fpm/php.ini
-sed -i 's/upload_max_filesize = .*/upload_max_filesize = 10240M/' /etc/php/8.2/fpm/php.ini
-sed -i 's/post_max_size = .*/post_max_size = 10240M/' /etc/php/8.2/fpm/php.ini
+sed -i 's/memory_limit = .*/memory_limit = 512M/' /etc/php/8.3/fpm/php.ini
+sed -i 's/;date.timezone.*/date.timezone = America\/Sao_Paulo/' /etc/php/8.3/fpm/php.ini
+sed -i 's/upload_max_filesize = .*/upload_max_filesize = 10240M/' /etc/php/8.3/fpm/php.ini
+sed -i 's/post_max_size = .*/post_max_size = 10240M/' /etc/php/8.3/fpm/php.ini
 
 # Restart and apply changes to WebServer and PHP
 systemctl restart $webserver
-systemctl restart php8.2-fpm
+systemctl restart php8.3-fpm
 
 # Create the Database
 mysql -e "CREATE DATABASE nextcloud;"
