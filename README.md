@@ -4,19 +4,11 @@ This repository contains a bash script to automate the installation of Nextcloud
 
 ## Table of Contents
 
-- [Prerequisites](#prerequisites)
 - [Usage](#usage)
 - [Features](#features)
 - [Logs](#logs)
 - [Contributing](#contributing)
 - [License](#license)
-
-## Prerequisites
-
-Before running the script, ensure you have the following:
-
-- A Debian or Ubuntu server
-- Superuser (root) privileges
 
 ## Usage
 
@@ -43,7 +35,7 @@ Before running the script, ensure you have the following:
 
 ## Features
 
-- **Automatic Dependency Installation:** Installs PHP 8.2, required PHP extensions, MariaDB, Redis, and more.
+- **Automatic Dependency Installation:** Installs PHP 8.3, required PHP extensions, MariaDB, Redis, and more.
 - **Web Server Configuration:** Supports both Apache and Nginx.
 - **Database Configuration:** Creates a database and user for Nextcloud with randomly generated credentials.
 - **Nextcloud Configuration:** Sets up Nextcloud with optimal settings for performance and security.
