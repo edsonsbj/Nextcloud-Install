@@ -40,7 +40,7 @@ exec 2>&1
 # Update the system.
 apt-get update && apt-get -y full-upgrade
 
-# Install PHP 8.2 and necessary extensions
+# Install PHP and necessary extensions
 
 # Prompt the user to choose between Debian and Ubuntu
 echo "Welcome to the PHP installer for Debian or Ubuntu!"
