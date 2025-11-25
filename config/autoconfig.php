@@ -4,6 +4,6 @@ $AUTOCONFIG = array(
   'dbname'        => 'nextcloud',
   'dbuser'        => 'nextcloud',
   'dbpass'        => 'DB_PASS_REPLACE',
-  'dbhost'        => 'DB_HOST_REPLACE',
-  'directory'     => '/var/nextcloud_data',
+  'dbhost'        => '127.0.0.1',
+  'directory'     => 'NEXTCLOUD_DATADIR_REPLACE',
 );
