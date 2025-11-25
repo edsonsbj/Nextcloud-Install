@@ -10,7 +10,7 @@ $CONFIG = array (
     'port' => 6379,
   ),
   'htaccess.RewriteBase' => '/',
-  'skeletondirectory' => '',
+  'maintenance_window_start' => 1,
   'enabledPreviewProviders' =>
   array (
     0 => 'OC\Preview\PNG',
